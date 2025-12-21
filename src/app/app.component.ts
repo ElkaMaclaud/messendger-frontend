@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { ChatList } from './chat-list/chat-list';
+
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet], 
+  imports: [CommonModule, RouterOutlet, ChatList, ], 
   template: `
     <div class="app-container">
       <!-- Шапка приложения -->
@@ -33,14 +35,39 @@ import { RouterOutlet } from '@angular/router';
           <div class="welcome-section">
             <div class="welcome-card">
               <h2>Добро пожаловать в мессенджер!</h2>
-              <p>Войдите в систему, чтобы начать общение</p>
+              <p>Войдите в аккаунт, чтобы начать общение</p>
               <button class="cta-button" (click)="login()">Начать общение</button>
             </div>
           </div>
         } @else {
-          <!-- Здесь будет интерфейс мессенджера -->
+          <!-- Интерфейс мессенджера -->
           <div class="messenger-interface">
-            <router-outlet></router-outlet>
+            <div class="chat-container">
+              <!-- Список чатов слева -->
+              <div class="chat-list-container">
+                <app-chat-list 
+                  [selectedChatId]="selectedChatId"
+                  (chatSelected)="onChatSelected($event)">
+                </app-chat-list>
+              </div>
+              
+              <!-- Переписка справа -->
+              <div class="conversation-container">
+                @if (selectedChatId) {
+                  <app-chat-conversation 
+                    [chatId]="selectedChatId">
+                  </app-chat-conversation>
+                } @else {
+                  <div class="no-chat-selected">
+                    <div class="empty-state">
+                      <h2>💬</h2>
+                      <h3>Выберите чат</h3>
+                      <p>Выберите чат из списка слева, чтобы начать общение</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
           </div>
         }
       </main>
@@ -64,13 +91,16 @@ import { RouterOutlet } from '@angular/router';
       color: white;
       padding: 1rem 0;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 2rem;
     }
@@ -174,10 +204,57 @@ import { RouterOutlet } from '@angular/router';
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
+    /* Интерфейс мессенджера */
     .messenger-interface {
-      height: 100%;
-      max-width: 1200px;
+      height: calc(100vh - 120px);
+      max-width: 1400px;
       margin: 0 auto;
+      background: white;
+    }
+
+    .chat-container {
+      display: flex;
+      height: 100%;
+      border: 1px solid #e0e0e0;
+    }
+
+    .chat-list-container {
+      width: 35%;
+      min-width: 300px;
+      max-width: 400px;
+      border-right: 1px solid #e0e0e0;
+      overflow-y: auto;
+      background: white;
+    }
+
+    .conversation-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .no-chat-selected {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      background: #f8f9fa;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+    }
+
+    .empty-state h2 {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #333;
     }
 
     .app-footer {
@@ -202,12 +279,32 @@ import { RouterOutlet } from '@angular/router';
       .welcome-card h2 {
         font-size: 1.5rem;
       }
+
+      .chat-list-container {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .conversation-container {
+        display: none;
+      }
+
+      .conversation-container.active {
+        display: flex;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+      }
     }
   `]
 })
 export class AppComponent {
   title = 'QuickChat';
   isLoggedIn = false;
+  selectedChatId: string | null = null;
 
   login() {
     this.isLoggedIn = true;
@@ -216,6 +313,12 @@ export class AppComponent {
 
   logout() {
     this.isLoggedIn = false;
+    this.selectedChatId = null;
     console.log('Пользователь вышел из системы');
+  }
+
+  onChatSelected(chatId: string) {
+    this.selectedChatId = chatId;
+    console.log('Выбран чат:', chatId);
   }
 }
