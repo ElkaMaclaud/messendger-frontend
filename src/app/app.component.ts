@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
 import { ChatList } from './chat-list/chat-list';
+import { ChatConversation } from './chat-conversation/chat-conversation';
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ChatList, ], 
+  imports: [CommonModule, ChatList, ChatConversation],
   template: `
     <div class="app-container">
       <!-- Шапка приложения -->
