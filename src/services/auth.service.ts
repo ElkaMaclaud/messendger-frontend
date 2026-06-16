@@ -1,5 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../environment/environment';
 
 interface JwtPayload {
   sub: number;
@@ -8,11 +11,22 @@ interface JwtPayload {
   exp: number;
 }
 
+interface LoginResponse {
+  access_token: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private tokenKey = 'auth_token';
+  private readonly http = inject(HttpClient);
+  private readonly tokenKey = 'auth_token';
+
+  login(username: string, password: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${environment.apiUrl}/auth/login`, { username, password })
+      .pipe(tap((res) => this.setToken(res.access_token)));
+  }
 
   isLoggedIn(): boolean {
     const token = this.getToken();

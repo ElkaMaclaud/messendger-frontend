@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ChatList } from './chat-list/chat-list';
 import { ChatConversation } from './chat-conversation/chat-conversation';
+import { AuthService } from '../services/auth.service';
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, ChatList, ChatConversation],
+  imports: [CommonModule, FormsModule, ChatList, ChatConversation],
   template: `
     <div class="app-container">
       <!-- Шапка приложения -->
@@ -17,11 +19,9 @@ import { ChatConversation } from './chat-conversation/chat-conversation';
             <h1>💬 {{ title }}</h1>
           </div>
           <div class="user-actions">
-            @if (!isLoggedIn) {
-              <button class="login-btn" (click)="login()">Войти</button>
-            } @else {
+            @if (isLoggedIn) {
               <div class="user-info">
-                <span class="username">Пользователь</span>
+                <span class="username">{{ currentUsername }}</span>
                 <button class="logout-btn" (click)="logout()">Выйти</button>
               </div>
             }
@@ -36,7 +36,38 @@ import { ChatConversation } from './chat-conversation/chat-conversation';
             <div class="welcome-card">
               <h2>Добро пожаловать в мессенджер!</h2>
               <p>Войдите в аккаунт, чтобы начать общение</p>
-              <button class="cta-button" (click)="login()">Начать общение</button>
+              <form class="login-form" (ngSubmit)="login()">
+                <input
+                  class="login-input"
+                  type="text"
+                  name="username"
+                  placeholder="Имя пользователя"
+                  autocomplete="username"
+                  [(ngModel)]="username"
+                  [disabled]="loading"
+                  required
+                />
+                <input
+                  class="login-input"
+                  type="password"
+                  name="password"
+                  placeholder="Пароль"
+                  autocomplete="current-password"
+                  [(ngModel)]="password"
+                  [disabled]="loading"
+                  required
+                />
+                @if (loginError) {
+                  <p class="login-error">{{ loginError }}</p>
+                }
+                <button
+                  class="cta-button"
+                  type="submit"
+                  [disabled]="loading || !username || !password"
+                >
+                  {{ loading ? 'Вход…' : 'Войти' }}
+                </button>
+              </form>
             </div>
           </div>
         } @else {
@@ -199,9 +230,39 @@ import { ChatConversation } from './chat-conversation/chat-conversation';
       font-size: 1.1rem;
     }
 
-    .cta-button:hover {
+    .cta-button:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .cta-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .login-input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .login-input:focus {
+      border-color: #667eea;
+    }
+
+    .login-error {
+      color: #e23b3b;
+      margin: 0;
+      font-size: 0.9rem;
     }
 
     /* Интерфейс мессенджера */
@@ -302,23 +363,50 @@ import { ChatConversation } from './chat-conversation/chat-conversation';
   `]
 })
 export class AppComponent {
+  private readonly authService = inject(AuthService);
+
   title = 'QuickChat';
-  isLoggedIn = false;
   selectedChatId: string | null = null;
 
+  username = '';
+  password = '';
+  loading = false;
+  loginError = '';
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  get currentUsername(): string {
+    return this.authService.getCurrentUser()?.username ?? 'Пользователь';
+  }
+
   login() {
-    this.isLoggedIn = true;
-    console.log('Пользователь вошел в систему');
+    if (!this.username || !this.password) {
+      return;
+    }
+    this.loading = true;
+    this.loginError = '';
+    this.authService.login(this.username, this.password).subscribe({
+      next: () => {
+        this.loading = false;
+        this.password = '';
+      },
+      error: () => {
+        this.loading = false;
+        this.loginError = 'Не удалось войти. Проверьте имя пользователя и пароль.';
+      },
+    });
   }
 
   logout() {
-    this.isLoggedIn = false;
+    this.authService.logout();
     this.selectedChatId = null;
-    console.log('Пользователь вышел из системы');
+    this.username = '';
+    this.password = '';
   }
 
   onChatSelected(chatId: string) {
     this.selectedChatId = chatId;
-    console.log('Выбран чат:', chatId);
   }
 }
