@@ -1,26 +1,30 @@
-export interface Message {
-  id: number;
-  text: string;
-  senderId: number;
-  receiverId: number;
-  timestamp: Date;
-  isRead: boolean;
-}
-
-export interface Contact {
-  id: number;
-  name: string;
-  avatar?: string;
-  lastMessage?: string;
-  lastMessageTime?: Date;
-  unreadCount: number;
-  isOnline: boolean;
-}
-
+// Модели данных, согласованные с бэкендом 
 export interface User {
   id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-  status: 'online' | 'offline' | 'away';
+  username: string;
+}
+
+export type ChatType = 'private' | 'group';
+
+
+export interface Message {
+  id: number;
+  content: string;
+  author: User;
+  isEdited: boolean;
+  replyToId: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Chat {
+  id: number;
+  type: ChatType;
+  name: string | null;
+  avatar: string | null;
+  participants: User[];
+  messages?: Message[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
