@@ -366,7 +366,7 @@ export class AppComponent {
   private readonly authService = inject(AuthService);
 
   title = 'QuickChat';
-  selectedChatId: string | null = null;
+  selectedChatId: number | null = null;
 
   username = '';
   password = '';
@@ -406,7 +406,7 @@ export class AppComponent {
     this.password = '';
   }
 
-  onChatSelected(chatId: string) {
+  onChatSelected(chatId: number) {
     this.selectedChatId = chatId;
   }
 }

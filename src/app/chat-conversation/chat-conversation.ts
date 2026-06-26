@@ -7,5 +7,5 @@ import { Component, input } from '@angular/core';
   styleUrl: './chat-conversation.css',
 })
 export class ChatConversation {
-  chatId = input.required<string>();
+  chatId = input.required<number>();
 }

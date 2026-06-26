@@ -1,15 +1,23 @@
-<ul class="chat-list">
-  @for (chat of chats; track chat.id) {
-    <li>
-      <button
-        type="button"
-        class="chat-item"
-        [class.active]="chat.id === selectedChatId()"
-        (click)="selectChat(chat.id)"
-      >
-        <span class="chat-name">{{ chat.name }}</span>
-        <span class="chat-last-message">{{ chat.lastMessage }}</span>
-      </button>
-    </li>
-  }
-</ul>
+@if (loading()) {
+  <p class="chat-list-status">Загрузка чатов…</p>
+} @else if (error()) {
+  <p class="chat-list-status chat-list-error">{{ error() }}</p>
+} @else if (chats().length === 0) {
+  <p class="chat-list-status">Чатов пока нет</p>
+} @else {
+  <ul class="chat-list">
+    @for (chat of chats(); track chat.id) {
+      <li>
+        <button
+          type="button"
+          class="chat-item"
+          [class.active]="chat.id === selectedChatId()"
+          (click)="selectChat(chat.id)"
+        >
+          <span class="chat-name">{{ chatTitle(chat) }}</span>
+          <span class="chat-last-message">{{ lastMessageText(chat) }}</span>
+        </button>
+      </li>
+    }
+  </ul>
+}
