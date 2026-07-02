@@ -2,7 +2,49 @@
   <header class="conversation-header">
     <h3>Чат #{{ chatId() }}</h3>
   </header>
-  <div class="conversation-body">
-    <p class="placeholder">Здесь будет переписка чата #{{ chatId() }}.</p>
+
+  <div class="conversation-body" #messagesBox>
+    @if (loading()) {
+      <p class="status">Загрузка сообщений…</p>
+    } @else if (error()) {
+      <p class="status status-error">{{ error() }}</p>
+    } @else if (messages().length === 0) {
+      <p class="status">Сообщений пока нет — напишите первым!</p>
+    } @else {
+      @for (message of messages(); track message.id) {
+        <div class="message" [class.own]="isOwn(message)">
+          @if (!isOwn(message)) {
+            <span class="message-author">{{ message.author.username }}</span>
+          }
+          <p class="message-content">{{ message.content }}</p>
+          <span class="message-meta">
+            {{ message.createdAt | date: 'HH:mm' }}
+            @if (message.isEdited) {
+              · изменено
+            }
+          </span>
+        </div>
+      }
+    }
   </div>
+
+  <form class="message-form" (ngSubmit)="send()">
+    @if (sendError()) {
+      <p class="status status-error">{{ sendError() }}</p>
+    }
+    <div class="message-form-row">
+      <input
+        class="message-input"
+        type="text"
+        name="message"
+        placeholder="Сообщение…"
+        autocomplete="off"
+        [(ngModel)]="newMessage"
+        [disabled]="sending()"
+      />
+      <button class="send-btn" type="submit" [disabled]="sending() || !newMessage.trim()">
+        {{ sending() ? 'Отправка…' : 'Отправить' }}
+      </button>
+    </div>
+  </form>
 </div>
