@@ -105,7 +105,7 @@ import { AuthService } from '../services/auth.service';
 
       <!-- Подвал -->
       <footer class="app-footer">
-        <p>&copy; 2024 {{ title }}. Все права защищены.</p>
+        <p>&copy; {{ currentYear }} {{ title }}. Все права защищены.</p>
       </footer>
     </div>
   `,
@@ -366,6 +366,7 @@ export class AppComponent {
   private readonly authService = inject(AuthService);
 
   title = 'QuickChat';
+  currentYear = new Date().getFullYear();
   selectedChatId: number | null = null;
 
   username = '';

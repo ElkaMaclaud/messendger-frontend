@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { Message } from '../models/message.model';
+import { chatDisplayName } from '../chat-title';
 
 @Component({
   selector: 'app-chat-conversation',
@@ -17,6 +18,7 @@ export class ChatConversation {
 
   chatId = input.required<number>();
 
+  protected readonly chatName = signal<string | null>(null);
   protected readonly messages = signal<Message[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -28,7 +30,23 @@ export class ChatConversation {
 
   constructor() {
     // Перезагружаем переписку при каждой смене выбранного чата
-    effect(() => this.loadMessages(this.chatId()));
+    effect(() => {
+      const chatId = this.chatId();
+      this.loadChat(chatId);
+      this.loadMessages(chatId);
+    });
+  }
+
+  private loadChat(chatId: number): void {
+    this.chatName.set(null);
+    this.chatService.getChat(chatId).subscribe({
+      next: (chat) => {
+        if (chatId !== this.chatId()) return;
+        this.chatName.set(chatDisplayName(chat, this.authService.getCurrentUser()?.sub));
+      },
+      // Имя чата некритично: при ошибке остаётся запасной заголовок «Чат #id»
+      error: () => {},
+    });
   }
 
   private loadMessages(chatId: number): void {

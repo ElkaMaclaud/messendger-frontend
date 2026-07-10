@@ -2,6 +2,7 @@ import { Component, OnInit, inject, input, output, signal } from '@angular/core'
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { Chat } from '../models/message.model';
+import { chatDisplayName } from '../chat-title';
 
 @Component({
   selector: 'app-chat-list',
@@ -38,12 +39,7 @@ export class ChatList implements OnInit {
   }
 
   protected chatTitle(chat: Chat): string {
-    if (chat.type === 'group') {
-      return chat.name ?? 'Группа';
-    }
-    const currentUserId = this.authService.getCurrentUser()?.sub;
-    const other = chat.participants.find((p) => p.id !== currentUserId);
-    return other?.username ?? 'Диалог';
+    return chatDisplayName(chat, this.authService.getCurrentUser()?.sub);
   }
 
   protected lastMessageText(chat: Chat): string {
