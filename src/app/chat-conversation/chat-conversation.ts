@@ -74,16 +74,19 @@ export class ChatConversation {
     const content = this.newMessage.trim();
     if (!content || this.sending()) return;
 
+    const chatId = this.chatId();
     this.sending.set(true);
     this.sendError.set(null);
-    this.chatService.sendMessage(this.chatId(), content).subscribe({
+    this.chatService.sendMessage(chatId, content).subscribe({
       next: (message) => {
+        if (chatId !== this.chatId()) return;
         this.messages.update((messages) => [...messages, message]);
         this.newMessage = '';
         this.sending.set(false);
         this.scrollToBottom();
       },
       error: () => {
+        if (chatId !== this.chatId()) return;
         this.sendError.set('Не удалось отправить сообщение');
         this.sending.set(false);
       },
